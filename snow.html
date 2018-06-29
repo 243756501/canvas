@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="css/mui.min.css" rel="stylesheet" />
+	</head>
+
+	<body>
+		<canvas id="canvas" width="800" height="300" style="border:1px solid black;"></canvas>
+		<script src="js/mui.min.js"></script>
+		<script type="text/javascript">
+			mui.init();
+			var mycanvas=document.getElementById("canvas");
+			var cv=mycanvas.getContext('2d');
+			cv.scale(2,2);
+			mycanvas.style.background="#000000";
+			
+			//雪花数组
+			var snowArray=[];
+			var timer;
+			
+			//绘制雪花
+			var canvasSnow=function(x,y,r){
+				this.x=x;
+				this.r=r;
+				this.y=y;
+				
+				this.draw=function(){
+					cv.beginPath();
+					cv.fillStyle="#FFFFFF";
+					cv.arc(this.x,this.y,this.r,"",Math.PI*2);
+					cv.fill();
+				}
+				
+				this.down=function(){
+					this.x=this.x+(0.2-0.2*(Math.random()*2));
+					this.y+=0.5*Math.random();
+					if(this.y>mycanvas.height){						
+						this.y=0;
+						this.x=mycanvas.width*Math.random();
+					}
+					this.draw();				
+				}
+				
+				this.draw();
+			}
+			
+			//添加雪花
+			var addSnow=function(){
+				for(var i=0;i<50;i++){
+					//高度都为0,x坐标随机,半径随机
+					var mX=mycanvas.width*Math.random();
+					var mY=i-Math.random()*i*10;
+					var mR=1.2*Math.random();
+					snowArray.push(new canvasSnow(mX,mY,mR));
+				}
+			}
+			
+			//绑定飘落动画
+			var downAction=function(){
+				cv.clearRect(0,0,mycanvas.width,mycanvas.height);
+				for(var i=0;i<snowArray.length;i++){
+					snowArray[i].down();
+				}
+				clearTimeout(timer);
+				timer=setTimeout(downAction,8);
+			}
+			addSnow();
+			downAction();
+		</script>
+	</body>
+
+</html>

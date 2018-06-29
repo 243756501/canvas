@@ -1,0 +1,129 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="css/mui.min.css" rel="stylesheet" />
+	</head>
+
+	<body>
+		<canvas id="canvas" ></canvas>
+		<script src="js/mui.min.js"></script>
+		<script type="text/javascript">
+			mui.init();
+			var canvas=document.getElementById("canvas"),
+			cv=canvas.getContext('2d');
+			
+			//颜色数组
+			var colorArray=['#272F32', '#9DBDC6', '#FF3D2E', '#DAEAEF'];
+			//气泡数组
+			var popArray=[];
+			//计时器用于气泡运动
+			var timer;
+			//记录鼠标xy
+			var mouseX,mouseY; 
+			
+			//监听鼠标移动
+			canvas.onmousemove=function(e){
+				mouseX=e.clientX;
+				mouseY=e.clientY;
+			}
+				
+			
+			//绘制气泡
+			var canvasPop=function(x,y,r){
+				var popNum=Math.floor((Math.random()*4)); //随机颜色
+				var xDirection=Math.floor(Math.random()*2);  //x随机方向
+				var yDirection=Math.floor(Math.random()*2); //y随机方向
+				
+				//坐标及半径及颜色
+				this.x=x;
+				this.y=y;
+				this.r=r;
+				this.color=colorArray[popNum];
+				
+			
+				//气泡移动方向
+				if(xDirection==1){
+					this.xV=-(Math.random()*1);
+				}else{
+					this.xV=Math.random()*1;
+				}
+				
+				if(yDirection==1){
+					this.yV=-(Math.random()*1);
+				}else{
+					this.yV=Math.random()*1;
+				}
+				
+				
+				
+				//绘制气泡
+				this.draw=function(){
+					cv.beginPath();
+					cv.fillStyle=this.color;
+					//如需通过 arc() 来创建圆，请把起始角设置为 0，结束角设置为 2*Math.PI,否则将是不全的圆弧线
+					cv.arc(this.x,this.y,this.r,"",Math.PI*2);
+					cv.fill();
+				}
+				
+				this.update=function(){
+					this.x+=this.xV;
+					this.y+=this.yV;
+					
+					var xDis=mouseX-this.x;
+					var yDis=mouseY-this.y;
+					var or=r;
+					
+					//鼠标接近,圆点变大
+					if(xDis<30 && xDis>-30 && yDis<30 && yDis>-30 && this.r<35){
+						this.r+=2;
+					}else{
+						if(this.r>3){
+							this.r-=2;
+						}
+					}
+					
+					
+					if(this.x+this.r>canvas.width || this.x-this.r<0){
+						this.xV=-this.xV;
+					};
+					if(this.y+this.r>canvas.height || this.y-this.r<0){
+						this.yV=-this.yV;
+					};
+					this.draw();
+				}
+				
+				this.draw();
+			}
+			
+			//创建气泡
+			var addPop=function(){
+				for(var i=0;i<200;i++){
+					var randomX=Math.random()*canvas.width;
+					var randomY=Math.random()*canvas.height;
+					var randomR=Math.random()*5;
+					popArray.push(new canvasPop(randomX,randomY,randomR));
+					//console.log(i)
+				}
+			};
+			
+			//更新画布
+			var updateCanvas=function(){
+				cv.clearRect(0,0,canvas.width,canvas.height);
+				for(var i=0 ;i<popArray.length;i++){
+					popArray[i].update();
+				}
+				clearTimeout(timer);
+				timer=setTimeout(updateCanvas,8)
+			}
+			
+			//var myCircle = new canvasPop(30,80,10);
+			addPop();
+			updateCanvas();
+		</script>
+	</body>
+
+</html>

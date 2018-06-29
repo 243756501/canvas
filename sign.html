@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title></title>
+		<script src="js/mui.min.js"></script>
+		<link href="css/mui.min.css" rel="stylesheet" />
+		<style>
+			#canvas {
+				width: 100%;
+				height: 500px;
+				background-color: #DDDDDD;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div class="mui-fullscreen" style="padding: 15px;">
+			<canvas id="canvas"></canvas>
+			<button id="clearBtn">重置签名板</button>
+			<button id="saveBtn">base64转换</button>
+		</div>
+		<script type="text/javascript" charset="utf-8">
+			mui.init();
+			mui.plusReady(function() {});
+			var mycanvas = document.getElementById('canvas');
+			var mys = mycanvas.getContext('2d');
+			mycanvas.height=mycanvas.offsetHeight;
+			mycanvas.width=mycanvas.offsetWidth;
+			mys.lineWidth=3;
+			mycanvas.addEventListener('touchstart', touchstart);
+			mycanvas.addEventListener('touchmove', touchmove);
+			var stageInfo = mycanvas.getBoundingClientRect();
+			console.log(stageInfo.left + "=" + stageInfo.top + "=" + stageInfo.bottom + "=" + stageInfo.right);
+			console.log("h"+mycanvas.offsetHeight+"w"+mycanvas.offsetWidth);
+			var startX, startY;
+			var endX, endY;
+			document.body.addEventListener('touchstart', function() {
+				event.preventDefault(); //手指滑动时，浏览器会上下左右翻屏
+			});
+			function touchstart(e) {
+				console.log('===touch' + e.changedTouches[0].clientX + "==" + e.changedTouches[0].clientY);
+				startX = e.changedTouches[0].clientX;
+				startY = e.changedTouches[0].clientY;
+				if(startX > (mycanvas.offsetWidth+stageInfo.left)) {
+					startX = (mycanvas.offsetWidth+stageInfo.left);
+					console.log('超出xr');
+				} else if(startX < stageInfo.left) {
+					startX = stageInfo.left;
+					console.log('超出xl');
+				} else if(startY > (mycanvas.offsetHeight+stageInfo.top)) {
+					startY = mycanvas.offsetHeight+stageInfo.top;
+					console.log('超出yr')
+				} else if(startY < stageInfo.top) {
+					startY = stageInfo.top;
+					console.log('超出yl');
+				}
+				mys.beginPath();
+				mys.moveTo((startX-stageInfo.left), (startY-stageInfo.top));
+			};
+
+			function touchmove(e) {
+				console.log('s' + startX + "y" + startY);
+				console.log('===move' + e.changedTouches[0].clientX + "==" + e.changedTouches[0].clientY);
+				endX = e.changedTouches[0].clientX;
+				endY = e.changedTouches[0].clientY;
+				if(endX > (mycanvas.offsetWidth+stageInfo.left)) {
+					endX = (mycanvas.offsetWidth+stageInfo.left);
+					console.log('超出xr');
+				} else if(endX < stageInfo.left) {
+					endX = stageInfo.left;
+					console.log('超出xl');
+				} else if(endY > (mycanvas.offsetHeight+stageInfo.top)) {
+					endY = mycanvas.offsetHeight+stageInfo.top;
+					console.log('超出yr')
+				} else if(endY < stageInfo.top) {
+					endY = stageInfo.top;
+					console.log('超出yl');
+				}
+				
+				mys.lineTo((endX-stageInfo.left), (endY-stageInfo.top));
+				mys.stroke();
+			};
+			document.getElementById("clearBtn").addEventListener('tap', function() {
+				mycanvas.height = mycanvas.height;
+			});
+			document.getElementById("saveBtn").addEventListener('tap',function(){
+				var base64=mycanvas.toDataURL("image/png");
+				console.log(base64);
+			});
+		</script>
+	</body>
+
+</html>

@@ -4,8 +4,8 @@
 sign.html - 手写签名板
 pop.html  - 泡泡动画
 snow.html - 雪花纷飞
-cartclick - 添加购物车
-
+cartclick.html - 添加购物车
+circlepro.html - 圆形进度条动画
 
 ###<canvas>
 

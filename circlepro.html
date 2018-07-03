@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title>圆形进度条</title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="css/mui.min.css" rel="stylesheet" />
+	</head>
+
+	<body>
+		<canvas id="canvas" style="background-color: #179ffe;"></canvas>
+		<script src="js/mui.min.js"></script>
+		<script type="text/javascript">
+			mui.init();
+			var canvas=document.getElementById("canvas");
+			var ctx=canvas.getContext('2d');
+			canvas.width=412;
+			canvas.height=500;
+			var startAngle=-(1/2*Math.PI);//开始
+			var endAngle=startAngle+2*Math.PI;
+			var tmpAngle = startAngle; 
+			var xA=1*(Math.PI/180);
+			var rander=function(){
+				
+				if(tmpAngle >= endAngle){
+					console.log("=")
+					return;
+				}else if(tmpAngle+xA>endAngle){
+					tmpAngle = endAngle;
+				}
+				tmpAngle+=xA;
+				
+				ctx.clearRect(0,0,412,500)
+				
+				ctx.beginPath();
+				ctx.lineWidth=15;
+				ctx.strokeStyle="#000000";
+				ctx.arc(200,250,80,startAngle,tmpAngle);
+				ctx.stroke();
+				ctx.closePath();
+				
+				ctx.fillStyle = '#000000';
+				ctx.font=20+"px 黑体";
+				ctx.textAlign="center";
+				ctx.fillText(Math.round((tmpAngle-startAngle)/(endAngle-startAngle)*100) +"%",200,250);
+				console.log(Math.round((tmpAngle-startAngle)/(endAngle-startAngle)*100))
+				//requestAnimationFrame(rander);//IE支持不好 可用settimeout
+				setTimeout(rander,1)
+			}
+
+            rander();
+		</script>
+	</body>
+
+</html>

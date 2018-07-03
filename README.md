@@ -4,7 +4,7 @@
 sign.html - 手写签名板
 pop.html  - 泡泡动画
 snow.html - 雪花纷飞
-
+cartclick - 添加购物车
 
 
 ###<canvas>
@@ -23,3 +23,5 @@ var canvas = document.getElementById('codeex');
 var url = canvas.toDataURL();
 //id为myimg的图片元素
 myimg.src = url;
+
+###

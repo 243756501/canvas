@@ -3,15 +3,16 @@
 
 	<head>
 		<meta charset="UTF-8">
-		<title>五子棋游戏</title>
+		<title>zhuchenxi-五子棋游戏</title>
 		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
 		<link href="css/mui.min.css" rel="stylesheet" />
 		<style>
-			.cell{
+			.cell {
 				border: 1px solid #FF0000;
 				display: inline-block;
 			}
-			.flag{
+			
+			.flag {
 				border-radius: 50%;
 				position: absolute;
 			}
@@ -19,76 +20,186 @@
 	</head>
 
 	<body>
-		<div id="area" style="margin: 50px;background-color: #AAAAAA;">
-			
+		<div id="area" style="margin: 100px;background-color: #AAAAAA;">
 		</div>
 		<script src="js/mui.min.js"></script>
 		<script type="text/javascript">
 			mui.init();
 			//基本全局参数
-			var SNUM=15;   //格子数量
-			var SH=55;     //格子高度
-			var SW=55;     //格子宽度
-			var WIN=5;   //判断输赢旗子数
-			var R=25;    //旗子半径
-			var FLAGH=55; //旗子高度
-			var FLAGW=55;  //旗子宽度
-			
-			var gameArea=document.getElementById("area");
-			var nowPlayer=1;//1为黑手 2为白手
-						
-			var Board={
+			var SNUM = 15; //格子数量
+			var SH = 55; //格子高度
+			var SW = 55; //格子宽度
+			var WIN = 5; //判断输赢旗子数
+			var R = 25; //旗子半径
+			var FLAGH = 55; //旗子高度
+			var FLAGW = 55; //旗子宽度
+
+			var gameArea = document.getElementById("area");
+			var nowPlayer = 1; //1为黑手 2为白手
+
+			var existArray = []; //已经存在的坐标点	
+			var whiteArray = []; //白旗子
+			var blackArray = []; //黑棋子
+			var Board = {
 				//初始化棋盘
-				init:function(){
-					gameArea.style.maxWidth=SNUM*SW+"px";
-					var df=document.createDocumentFragment();
-					for(var i=0;i<SNUM;i++){
-						var row=document.createElement('div');
-						row.style.minWidth=SNUM*SW+"px";
-						row.style.maxWidth=SNUM*SW+"px";
-						row.style.height=SH+"px";
-						for(var j=0;j<SNUM;j++){
-							var cell=document.createElement('div');
-							cell.className="cell";
-							cell.style.width=SW+"px";
-							cell.style.height=SH+"px";
+				init: function() {
+					gameArea.style.maxWidth = SNUM * SW + "px";
+					var df = document.createDocumentFragment();
+					for(var i = 0; i < SNUM; i++) {
+						var row = document.createElement('div');
+						row.style.minWidth = SNUM * SW + "px";
+						row.style.maxWidth = SNUM * SW + "px";
+						row.style.height = SH + "px";
+						for(var j = 0; j < SNUM; j++) {
+							var cell = document.createElement('div');
+							cell.className = "cell";
+							cell.style.width = SW + "px";
+							cell.style.height = SH + "px";
 							row.appendChild(cell);
 						}
-					    df.appendChild(row)	
+						df.appendChild(row)
 					}
 					document.getElementById("area").appendChild(df);
 				}
 			}
-			
-			
-			var Flag={
-				//绘制旗子
-				draw:function(fx,fy,player){
-					var div=document.createElement('div');
-					div.className="flag";
-					if(player==1){
-						div.style.backgroundColor="#000000";
-					}else{
-						div.style.backgroundColor="#ffffff";
+
+			//排序算法从小到大排序(这里采用递归+冒泡快速排序)
+			var sortArray = function(marray, keywords) {
+				if(marray.length < 2) {
+					return marray;
+				}
+				var leftArray=[]; rightArray = [];
+				var midNum=Math.floor(marray.length / 2);
+				var midValue=marray.splice(midNum,1)[0];
+				for(var i in marray) {
+					if(keywords == "x") {			
+						if(marray[i].x <= midValue.x) {
+							leftArray.push(marray[i]);
+						} else {
+							rightArray.push(marray[i]);
+						}
+					} else {
+						midNum = marray[Math.floor(marray.length / 2)].y;
+						if(marray[i].y <= midValue.y) {
+							leftArray.push(marray[i]);
+						} else {
+							rightArray.push(marray[i]);
+						}
 					}
-					div.style.width=FLAGW+"px";
-					div.style.height=FLAGH+"px";
-					div.style.left=fx-FLAGW/2+"px";
-					div.style.top=fy-FLAGH/2+"px";
-					gameArea.appendChild(div);
+				}
+				//涉及到变量传递 要考虑深浅复制！！！！！
+				var nl=leftArray.concat();
+				var nr=rightArray.concat();
+				//console.log(JSON.stringify(leftArray)+"=="+JSON.stringify(midValue)+"==="+JSON.stringify(rightArray))
+				return sortArray(nl,keywords).concat([midValue], sortArray(nr,keywords));
+			};
+
+            //返回对象数组对应元素的index
+            var returnArrayIndex=function(marray,item){   
+            	var reIndex=null;
+            	for(var i=0; i<marray.length; i++){
+            		if(marray[i].x==item.x && marray[i].y==item.y){
+            			reIndex=i;
+            		}
+            	}
+            	return reIndex;
+            };
+            
+			var Game = {
+				//判断是否获胜
+				isWin: function(fx, fy) {
+					//如果数组长度小于5则跳过判断
+					/*if(blackArray.length < 5 || whiteArray.length < 5) {
+						return;
+					}*/
+					var checkArray=[];
+					var count = 0;
+					var winX=0,winY=0,winLX=0,winRX=0; //四个轨迹
+					if(nowPlayer == 1){
+						checkArray=blackArray.concat();
+					}else{
+						checkArray=whiteArray.concat();
+					}
+					//横向判断 按x轴大小进行从小到大的排序 从头开始判定 是否有连贯的5即可
+					var marrayX=sortArray(checkArray,"x");
+					console.log("marrayX==="+JSON.stringify(marrayX));
+					
+				//	var inX=returnArrayIndex(marrayX,{x:fx,y:fy});
+					for(var i=0;i<marrayX.length;i++){
+						if(marrayX[i+1]-marrayX[i]==SW){
+							winX++;
+						}
+					}
+                    
 				}
 			}
-			
-			
-			
-			
+
+			var Flag = {
+				//绘制旗子
+				draw: function(fx, fy, player) {
+					//纠正点的位置
+					for(var i = 0; i <= 15; i++) {
+						var areaX = SW * i + 55;
+						if(Math.abs(fx - areaX) < (SW / 2)) {
+							fx = areaX;
+						}
+						var areaY = SH * i + 55;
+						if(Math.abs(fy - areaY) < (SH / 2)) {
+							fy = areaY;
+						}
+					}
+					//判断当前点是否已经存在
+					if(existArray.length > 0) {
+						for(var j in existArray) {
+							if(fx == existArray[j].x && fy == existArray[j].y) {
+								alert("该位置已经有旗子啦！！！")
+								return;
+							}
+						}
+					}
+
+					var div = document.createElement('div');
+					div.className = "flag";
+					if(player == 1) {
+						div.style.backgroundColor = "#000000";
+					} else {
+						div.style.backgroundColor = "#ffffff";
+					}
+					div.style.width = FLAGW + "px";
+					div.style.height = FLAGH + "px";
+					div.style.left = fx - FLAGW / 2 + "px";
+					div.style.top = fy - FLAGH / 2 + "px";
+					existArray.push({
+						x: fx,
+						y: fy
+					});
+					//console.log("当前已下子的点===" + JSON.stringify(existArray));
+					if(nowPlayer == 1) {
+						blackArray.push({
+							x: fx,
+							y: fy
+						});
+						//console.log("黑棋===" + JSON.stringify(blackArray));
+					} else {
+						whiteArray.push({
+							x: fx,
+							y: fy
+						});
+						//console.log("白棋===" + JSON.stringify(whiteArray));
+					}
+					gameArea.appendChild(div);
+
+					Game.isWin(fx, fy);
+				}
+			}
+
 			Board.init();
-			gameArea.addEventListener('tap',function(e){	
-				console.log(e.detail.center)
-				var fx=e.detail.center.x;
-				var fy=e.detail.center.y;
-				Flag.draw(fx,fy,nowPlayer);
-			    nowPlayer==1 ? nowPlayer=2 : nowPlayer=1;
+			gameArea.addEventListener('tap', function(e) {
+				//console.log(e.detail.center)
+				var fx = e.detail.center.x;
+				var fy = e.detail.center.y;
+				Flag.draw(fx, fy, nowPlayer);
+				nowPlayer == 1 ? nowPlayer = 2 : nowPlayer = 1;
 			});
 		</script>
 	</body>

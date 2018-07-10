@@ -5,7 +5,7 @@
 		<meta charset="UTF-8">
 		<title>zhuchenxi-五子棋游戏</title>
 		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
-		<link href="css/mui.min.css" rel="stylesheet" />
+
 		<style>
 			.cell {
 				border: 1px solid #FF0000;
@@ -28,7 +28,7 @@
 		</div>
 		<script src="js/mui.min.js"></script>
 		<script type="text/javascript">
-			mui.init();
+
 			//基本全局参数
 			var SNUM = 15; //格子数量
 			var SH = 55; //格子高度
@@ -50,12 +50,12 @@
 			var Board = {
 				//初始化棋盘
 				init: function() {
-					gameArea.style.maxWidth = SNUM * SW + "px";
+					gameArea.style.maxWidth = SNUM * (SW+2) + "px";
 					var df = document.createDocumentFragment();
 					for(var i = 0; i < SNUM; i++) {
 						var row = document.createElement('div');
-						row.style.minWidth = SNUM * SW + "px";
-						row.style.maxWidth = SNUM * SW + "px";
+						row.style.Width = SNUM * (SW+2) + "px";
+						row.style.minWidth = SNUM * (SW +2)+ "px";
 						row.style.height = SH + "px";
 						for(var j = 0; j < SNUM; j++) {
 							var cell = document.createElement('div');
@@ -136,55 +136,79 @@
 					//console.log("marrayX==="+JSON.stringify(marrayX));
 					//	var inX=returnArrayIndex(marrayX,{x:fx,y:fy});
 
-					for(var i = 1; i < marrayX.length; i++) {
+					for(var i = 0; i < marrayX.length; i++) {
+						winX = 1;
+						for(var j = 1; j < marrayX.length; j++) {
+							if((marrayX[j].x - marrayX[i].x) == ((SW+2)*winX) && marrayX[j].y == marrayX[i].y) {
+								winX++;
+							} 
+						}
+						if(winX>4){
+							Game.endGame();
+							break;
+						}
+					}
+
+					/*for(var i = 1; i < marrayX.length; i++) {
 						if(marrayX[i].x - marrayX[i - 1].x == SW && marrayX[i].y == marrayX[i - 1].y) {
 							winX++;
 						} else {
 							winX = 1;
 						}
 
-					}
-					console.log("marrayX===" + JSON.stringify(marrayX));
+					}*/
+					//console.log("marrayX===" + JSON.stringify(marrayX));
 					//斜向判断
 					for(var i = 1; i < marrayX.length; i++) {
 						var dir = 1; //斜向上方向
-						winLL=1;
-						for(var l = 1; l < marrayX.length; l++) {							
+						winLL = 1;
+						for(var l = 1; l < marrayX.length; l++) {
 							if((marrayX[l].x - marrayX[i - 1].x) < 0 && (marrayX[l].y - marrayX[i - 1].y) > 0) {
-							   if(dir !== 0 ){
-							   	  winLL=1;
-							   	  dir=0;
-							   }
-                               if(Math.abs(marrayX[l].x - marrayX[i - 1].x) == (SW * winLL) && (marrayX[l].y - marrayX[i - 1].y) == (SH * winLL)) {
-									winLL++;
-								} 
-							} else {
-								if(dir!==1){
-									winLL=1;
-									dir=1;									
+								if(dir !== 0) {
+									winLL = 1;
+									dir = 0;
 								}
-								if((marrayX[l].x - marrayX[i - 1].x) == (SW * winLL) && Math.abs(marrayX[l].y - marrayX[i - 1].y) == (SH * winLL)) {
+								if(Math.abs(marrayX[l].x - marrayX[i - 1].x) == ((SW+2) * winLL) && (marrayX[l].y - marrayX[i - 1].y) == ((SH+2) * winLL)) {
+									winLL++;
+								}
+							} else {
+								if(dir !== 1) {
+									winLL = 1;
+									dir = 1;
+								}
+								if((marrayX[l].x - marrayX[i - 1].x) == ((SW+2) * winLL) && Math.abs(marrayX[l].y - marrayX[i - 1].y) == ((SH+2) * winLL)) {
 									winLL++;
 								}
 							}
 						}
-						if(winLL>4){
+						if(winLL > 4) {
 							break;
 						}
 					}
 					//纵向判断
 					var marrayY = sortArray(checkArray.concat(), "y");
-					for(var j = 1; j < marrayY.length; j++) {
+					console.log("marrayX===" + JSON.stringify(marrayY));
+					for(var i = 0; i < marrayY.length; i++) {
+						winY = 1;
+						for(var j = 1; j < marrayY.length; j++) {
+							if((marrayY[j].y - marrayY[i].y) == ((SW+2)*winY) && marrayY[j].x == marrayY[i].x) {
+								winY++;
+							} 
+						}
+						if(winY>4){
+							Game.endGame();
+							break;
+						}
+					}
+					/*for(var j = 1; j < marrayY.length; j++) {
 						if(marrayY[j].y - marrayY[j - 1].y == SH && marrayY[j].x == marrayY[j - 1]) {
 							winY++;
 						} else {
 							winY = 1;
 						}
-					}
+					}*/
+
 					
-					if(winX > 4 || winY > 4 || winLL > 4) {
-						Game.endGame();
-					}
 				},
 				//游戏结束
 				endGame: function() {
@@ -198,11 +222,11 @@
 				draw: function(fx, fy, player) {
 					//纠正点的位置
 					for(var i = 0; i <= 15; i++) {
-						var areaX = SW * i + 50;
+						var areaX = (SW+2) * i + 50;
 						if(Math.abs(fx - areaX) < (SW / 2)) {
 							fx = areaX;
 						}
-						var areaY = SH * i + 140;
+						var areaY = (SH+2) * i + 140;
 						if(Math.abs(fy - areaY) < (SH / 2)) {
 							fy = areaY;
 						}
@@ -228,8 +252,8 @@
 					}
 					div.style.width = FLAGW + "px";
 					div.style.height = FLAGH + "px";
-					div.style.left = fx - FLAGW / 2 + "px";
-					div.style.top = fy - FLAGH / 2 + "px";
+					div.style.left = fx  - FLAGW / 2  + "px";
+					div.style.top = fy - FLAGH / 2.5 + "px";
 					existArray.push({
 						x: fx,
 						y: fy
@@ -255,17 +279,18 @@
 			}
 
 			Board.init();
-			gameArea.addEventListener('tap', function(e) {
+			gameArea.onclick=function(e) {
+				console.log(e)
 				if(ISEND) {
 					return;
 				}
 				//console.log(e.detail.center)
-				var fx = e.detail.center.x;
-				var fy = e.detail.center.y;
+				var fx = e.pageX;
+				var fy = e.pageY;
 				Flag.draw(fx, fy, nowPlayer);
 				nowPlayer == 1 ? nowPlayer = 2 : nowPlayer = 1;
-				stepNum.innerHTML = STEPNUM++;
-			});
+				stepNum.innerHTML = ++STEPNUM;
+			};
 		</script>
 	</body>
 

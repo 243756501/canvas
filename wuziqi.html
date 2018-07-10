@@ -20,7 +20,11 @@
 	</head>
 
 	<body>
-		<div id="area" style="margin: 100px;background-color: #AAAAAA;">
+		<div style="padding: 50px 100px; ">
+			<div>当前单位:<span id="nowRole">黑棋</span></div>
+			<div>总步数:<span id="stepNum">0</span></div>
+		</div>
+		<div id="area" style="margin:0 100px;background-color: #AAAAAA;">
 		</div>
 		<script src="js/mui.min.js"></script>
 		<script type="text/javascript">
@@ -33,10 +37,13 @@
 			var R = 25; //旗子半径
 			var FLAGH = 55; //旗子高度
 			var FLAGW = 55; //旗子宽度
+			var STEPNUM = 0; //总步数
+			var ISEND = false; //游戏是否结束
 
 			var gameArea = document.getElementById("area");
-			var nowPlayer = 1; //1为黑手 2为白手
-
+			var nowRole = document.getElementById("nowRole");
+			var stepNum = document.getElementById("stepNum");
+			var nowPlayer = 1; //1为黑手 2为白手           
 			var existArray = []; //已经存在的坐标点	
 			var whiteArray = []; //白旗子
 			var blackArray = []; //黑棋子
@@ -68,11 +75,12 @@
 				if(marray.length < 2) {
 					return marray;
 				}
-				var leftArray=[]; rightArray = [];
-				var midNum=Math.floor(marray.length / 2);
-				var midValue=marray.splice(midNum,1)[0];
+				var leftArray = [];
+				rightArray = [];
+				var midNum = Math.floor(marray.length / 2);
+				var midValue = marray.splice(midNum, 1)[0];
 				for(var i in marray) {
-					if(keywords == "x") {			
+					if(keywords == "x") {
 						if(marray[i].x <= midValue.x) {
 							leftArray.push(marray[i]);
 						} else {
@@ -88,74 +96,100 @@
 					}
 				}
 				//涉及到变量传递 要考虑深浅复制！！！！！
-				var nl=leftArray.concat();
-				var nr=rightArray.concat();
+				var nl = leftArray.concat();
+				var nr = rightArray.concat();
 				//console.log(JSON.stringify(leftArray)+"=="+JSON.stringify(midValue)+"==="+JSON.stringify(rightArray))
-				return sortArray(nl,keywords).concat([midValue], sortArray(nr,keywords));
+				return sortArray(nl, keywords).concat([midValue], sortArray(nr, keywords));
 			};
 
-            //返回对象数组对应元素的index
-            var returnArrayIndex=function(marray,item){   
-            	var reIndex=null;
-            	for(var i=0; i<marray.length; i++){
-            		if(marray[i].x==item.x && marray[i].y==item.y){
-            			reIndex=i;
-            		}
-            	}
-            	return reIndex;
-            };
-            
+			//返回对象数组对应元素的index
+			var returnArrayIndex = function(marray, item) {
+				var reIndex = null;
+				for(var i = 0; i < marray.length; i++) {
+					if(marray[i].x == item.x && marray[i].y == item.y) {
+						reIndex = i;
+					}
+				}
+				return reIndex;
+			};
+
 			var Game = {
+
 				//判断是否获胜
 				isWin: function(fx, fy) {
 					//如果数组长度小于5则跳过判断
 					if(blackArray.length < 5 && whiteArray.length < 5) {
 						return;
 					}
-					var checkArray=[];
+					var checkArray = [];
 					var count = 0;
-					var winX=1,winY=1,winLL=1; //四个轨迹
-					if(nowPlayer == 1){
-						checkArray=blackArray.concat();
-					}else{
-						checkArray=whiteArray.concat();
+					var winX = 1,
+						winY = 1,
+						winLL = 1; //四个轨迹
+					if(nowPlayer == 1) {
+						checkArray = blackArray.concat();
+					} else {
+						checkArray = whiteArray.concat();
 					}
 					//横向判断 按x轴大小进行从小到大的排序 从头开始判定 是否有连贯的5即可
-					var marrayX=sortArray(checkArray.concat(),"x");
+					var marrayX = sortArray(checkArray.concat(), "x");
 					//console.log("marrayX==="+JSON.stringify(marrayX));
-				//	var inX=returnArrayIndex(marrayX,{x:fx,y:fy});
-				      
-					for(var i=1;i<marrayX.length;i++){
-						if(marrayX[i].x-marrayX[i-1].x==SW){
+					//	var inX=returnArrayIndex(marrayX,{x:fx,y:fy});
+
+					for(var i = 1; i < marrayX.length; i++) {
+						if(marrayX[i].x - marrayX[i - 1].x == SW && marrayX[i].y == marrayX[i - 1].y) {
 							winX++;
-						}else{
-							winX=1;
+						} else {
+							winX = 1;
 						}
-						//斜向判断
-						for(var l=1;l<marrayX.length;l++){
-							if((marrayX[l].x-marrayX[i-1].x)==(SW*winLL) && (marrayX[l].y-marrayX[i-1].y)==(SH*winLL)){
-								winLL++;
-							}else{
-								winLL=1
+
+					}
+					console.log("marrayX===" + JSON.stringify(marrayX));
+					//斜向判断
+					for(var i = 1; i < marrayX.length; i++) {
+						var dir = 1; //斜向上方向
+						for(var l = 1; l < marrayX.length; l++) {
+							winLL=1;
+							if((marrayX[l].x - marrayX[i - 1].x) < 0 && (marrayX[l].y - marrayX[i - 1].y) > 0) {
+							   if(dir !== 0 ){
+							   	  winLL=1;
+							   	  dir=0;
+							   }
+                               if(Math.abs(marrayX[l].x - marrayX[i - 1].x) == (SW * winLL) && (marrayX[l].y - marrayX[i - 1].y) == (SH * winLL)) {
+									winLL++;
+								} 
+							} else {
+								if(dir!==1){
+									winLL=1;
+									dir=1;									
+								}
+								if((marrayX[l].x - marrayX[i - 1].x) == (SW * winLL) && Math.abs(marrayX[l].y - marrayX[i - 1].y) == (SH * winLL)) {
+									winLL++;
+								}
 							}
+						}
+						if(winLL>4){
+							break;
+						}
+					}
+					//纵向判断
+					var marrayY = sortArray(checkArray.concat(), "y");
+					for(var j = 1; j < marrayY.length; j++) {
+						if(marrayY[j].y - marrayY[j - 1].y == SH && marrayY[j].x == marrayY[j - 1]) {
+							winY++;
+						} else {
+							winY = 1;
 						}
 					}
 					
-					//纵向判断
-					var marrayY=sortArray(checkArray.concat(),"y");
-					for(var j=1;j<marrayY.length;j++){
-						if(marrayY[j].y-marrayY[j-1].y==SH){
-							winY++;
-						}else{
-							winY=1;
-						}
+					if(winX > 4 || winY > 4 || winLL > 4) {
+						Game.endGame();
 					}
-					console.log("marrayX==="+JSON.stringify(marrayX));
-					if(winX>4 || winY>4){
-						alert("you win!!")
-					}
-                    
-                    
+				},
+				//游戏结束
+				endGame: function() {
+					alert("恭喜你！获得胜利！");
+					ISEND = true;
 				}
 			}
 
@@ -164,11 +198,11 @@
 				draw: function(fx, fy, player) {
 					//纠正点的位置
 					for(var i = 0; i <= 15; i++) {
-						var areaX = SW * i + 55;
+						var areaX = SW * i + 50;
 						if(Math.abs(fx - areaX) < (SW / 2)) {
 							fx = areaX;
 						}
-						var areaY = SH * i + 55;
+						var areaY = SH * i + 140;
 						if(Math.abs(fy - areaY) < (SH / 2)) {
 							fy = areaY;
 						}
@@ -187,8 +221,10 @@
 					div.className = "flag";
 					if(player == 1) {
 						div.style.backgroundColor = "#000000";
+						nowRole.innerHTML = "黑棋";
 					} else {
 						div.style.backgroundColor = "#ffffff";
+						nowRole.innerHTML = "白棋";
 					}
 					div.style.width = FLAGW + "px";
 					div.style.height = FLAGH + "px";
@@ -220,11 +256,15 @@
 
 			Board.init();
 			gameArea.addEventListener('tap', function(e) {
+				if(ISEND) {
+					return;
+				}
 				//console.log(e.detail.center)
 				var fx = e.detail.center.x;
 				var fy = e.detail.center.y;
 				Flag.draw(fx, fy, nowPlayer);
 				nowPlayer == 1 ? nowPlayer = 2 : nowPlayer = 1;
+				stepNum.innerHTML = STEPNUM++;
 			});
 		</script>
 	</body>
